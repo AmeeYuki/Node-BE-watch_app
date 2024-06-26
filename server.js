@@ -3,7 +3,6 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const mongoose = require("mongoose");
 var logger = require("morgan");
-
 require("dotenv").config();
 const setupSwagger = require("./swagger/swagger"); // Import swagger setup
 

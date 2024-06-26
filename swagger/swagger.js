@@ -14,8 +14,22 @@ const options = {
         url: "http://localhost:5000",
       },
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
-  apis: ["./routes/*.js"], // Đây là nơi định nghĩa các routes với Swagger comments
+  apis: ["./routes/*.js"], // Đường dẫn đến các file routes có Swagger comments
 };
 
 const specs = swaggerJsdoc(options);
