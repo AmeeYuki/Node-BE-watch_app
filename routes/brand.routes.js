@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const brandController = require("../controllers/brand.controller");
+const auth = require("../middleware/authMiddleware");
 
 /**
  * @swagger
@@ -43,7 +44,7 @@ const brandController = require("../controllers/brand.controller");
  *               items:
  *                 $ref: '#/components/schemas/Brand'
  */
-router.get("/", brandController.getBrands);
+router.get("/", brandController.getAllBrands);
 
 /**
  * @swagger
@@ -58,7 +59,7 @@ router.get("/", brandController.getBrands);
  *           schema:
  *             $ref: '#/components/schemas/Brand'
  *     responses:
- *       200:
+ *       201:
  *         description: The brand was successfully created
  *         content:
  *           application/json:
@@ -67,34 +68,34 @@ router.get("/", brandController.getBrands);
  *       400:
  *         description: Some error happened
  */
-router.post("/add", brandController.addBrand);
+router.post("/add", auth("admin"), brandController.createBrand);
 
-/**
- * @swagger
- * /brands/{id}:
- *   get:
- *     summary: Get the brand by ID
- *     tags: [Brands]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: The brand id
- *     responses:
- *       200:
- *         description: The brand description by ID
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Brand'
- *       400:
- *         description: Some error happened
- *       404:
- *         description: The brand was not found
- */
-router.get("/:id", brandController.getBrandById);
+// /**
+//  * @swagger
+//  * /brands/{id}:
+//  *   get:
+//  *     summary: Get the brand by ID
+//  *     tags: [Brands]
+//  *     parameters:
+//  *       - in: path
+//  *         name: id
+//  *         schema:
+//  *           type: string
+//  *         required: true
+//  *         description: The brand id
+//  *     responses:
+//  *       200:
+//  *         description: The brand description by ID
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               $ref: '#/components/schemas/Brand'
+//  *       400:
+//  *         description: Some error happened
+//  *       404:
+//  *         description: The brand was not found
+//  */
+// router.get("/:id", brandController.getBrandById);
 
 /**
  * @swagger
@@ -127,7 +128,7 @@ router.get("/:id", brandController.getBrandById);
  *       404:
  *         description: The brand was not found
  */
-router.put("/update/:id", brandController.updateBrand);
+router.put("/update/:id", auth("admin"), brandController.updateBrand);
 
 /**
  * @swagger
@@ -150,6 +151,6 @@ router.put("/update/:id", brandController.updateBrand);
  *       404:
  *         description: The brand was not found
  */
-router.delete("/:id", brandController.deleteBrand);
+router.delete("/:id", auth("admin"), brandController.deleteBrand);
 
 module.exports = router;

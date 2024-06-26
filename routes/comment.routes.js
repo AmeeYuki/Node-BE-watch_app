@@ -18,29 +18,16 @@ const commentController = require("../controllers/comment.controller");
  *         rating:
  *           type: number
  *           description: The rating of the comment
- *           minimum: 1
- *           maximum: 3
  *         content:
  *           type: string
  *           description: The content of the comment
  *         author:
  *           type: string
- *           description: The author of the comment (refers to Member)
- *         createdAt:
- *           type: string
- *           format: date-time
- *           description: The date the comment was created
- *         updatedAt:
- *           type: string
- *           format: date-time
- *           description: The date the comment was last updated
+ *           description: The ID of the author
  *       example:
- *         _id: d5fE_asz
- *         rating: 2
- *         content: This is a comment
- *         author: 60d0fe4f5311236168a109ca
- *         createdAt: 2021-06-22T14:38:00.000Z
- *         updatedAt: 2021-06-22T14:38:00.000Z
+ *         rating: 3
+ *         content: Great watch!
+ *         author: 60d21b4667d0d8992e610c85
  */
 
 /**
@@ -81,7 +68,7 @@ router.get("/", commentController.getComments);
  *           schema:
  *             $ref: '#/components/schemas/Comment'
  *     responses:
- *       200:
+ *       201:
  *         description: The comment was successfully created
  *         content:
  *           application/json:
@@ -90,7 +77,7 @@ router.get("/", commentController.getComments);
  *       400:
  *         description: Some error happened
  */
-router.post("/add", commentController.addComment);
+router.post("/add", commentController.createComment);
 
 /**
  * @swagger

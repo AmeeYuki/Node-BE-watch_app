@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const watchController = require("../controllers/watch.controller");
+const auth = require("../middleware/authMiddleware");
 
 /**
  * @swagger
@@ -26,7 +27,7 @@ const watchController = require("../controllers/watch.controller");
  *         price:
  *           type: number
  *           description: The price of the watch
- *         Automatic:
+ *         automatic:
  *           type: boolean
  *           description: Whether the watch is automatic
  *         watchDescription:
@@ -36,29 +37,17 @@ const watchController = require("../controllers/watch.controller");
  *           type: array
  *           items:
  *             type: string
- *             description: The comment IDs related to the watch
+ *             description: The ID of the comment
  *         brand:
  *           type: string
- *           description: The brand ID of the watch
- *         createdAt:
- *           type: string
- *           format: date-time
- *           description: The date the watch was created
- *         updatedAt:
- *           type: string
- *           format: date-time
- *           description: The date the watch was last updated
+ *           description: The ID of the brand
  *       example:
- *         _id: d5fE_asz
  *         watchName: Rolex Submariner
- *         image: http://example.com/rolex.jpg
+ *         image: http://example.com/image.jpg
  *         price: 15000
- *         Automatic: true
- *         watchDescription: This is a luxury watch.
- *         comments: [d5fE_asz, f9fE_asz]
- *         brand: d5fE_asz
- *         createdAt: 2021-06-22T14:38:00.000Z
- *         updatedAt: 2021-06-22T14:38:00.000Z
+ *         automatic: true
+ *         watchDescription: A luxury diving watch
+ *         brand: 60d21b4667d0d8992e610c85
  */
 
 /**
@@ -88,30 +77,6 @@ router.get("/", watchController.getWatches);
 
 /**
  * @swagger
- * /watches/add:
- *   post:
- *     summary: Create a new watch
- *     tags: [Watches]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Watch'
- *     responses:
- *       200:
- *         description: The watch was successfully created
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Watch'
- *       400:
- *         description: Some error happened
- */
-router.post("/add", watchController.addWatch);
-
-/**
- * @swagger
  * /watches/{id}:
  *   get:
  *     summary: Get the watch by ID
@@ -136,6 +101,30 @@ router.post("/add", watchController.addWatch);
  *         description: The watch was not found
  */
 router.get("/:id", watchController.getWatchById);
+
+/**
+ * @swagger
+ * /watches/add:
+ *   post:
+ *     summary: Create a new watch
+ *     tags: [Watches]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Watch'
+ *     responses:
+ *       201:
+ *         description: The watch was successfully created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Watch'
+ *       400:
+ *         description: Some error happened
+ */
+router.post("/add", auth("admin"), watchController.createWatch);
 
 /**
  * @swagger
@@ -168,7 +157,7 @@ router.get("/:id", watchController.getWatchById);
  *       404:
  *         description: The watch was not found
  */
-router.put("/update/:id", watchController.updateWatch);
+router.put("/update/:id", auth("admin"), watchController.updateWatch);
 
 /**
  * @swagger
@@ -191,6 +180,6 @@ router.put("/update/:id", watchController.updateWatch);
  *       404:
  *         description: The watch was not found
  */
-router.delete("/:id", watchController.deleteWatch);
+router.delete("/:id", auth("admin"), watchController.deleteWatch);
 
 module.exports = router;
