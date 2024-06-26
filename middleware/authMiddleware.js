@@ -30,10 +30,22 @@ module.exports = function auth(requiredRole) {
       req.member = member;
 
       // Kiểm tra quyền truy cập yêu cầu
-      if (requiredRole === "admin" && !member.isAdmin) {
-        return res
-          .status(403)
-          .json({ msg: "Unauthorized, admin access required" });
+      if (requiredRole === "admin") {
+        // Nếu yêu cầu là admin, kiểm tra xem thành viên có phải là admin hay không
+        if (!member.isAdmin) {
+          return res
+            .status(403)
+            .json({ msg: "Unauthorized, admin access required" });
+        }
+      } else {
+        // Nếu không yêu cầu quyền admin, chỉ cần là thành viên đăng nhập là được
+        // Check for scenarios where admin is not allowed
+        // For example, if you want to prevent admins from performing certain actions
+        if (member.isAdmin) {
+          return res
+            .status(403)
+            .json({ msg: "Unauthorized, admin access not allowed" });
+        }
       }
 
       // Tiếp tục sang middleware hoặc controller tiếp theo

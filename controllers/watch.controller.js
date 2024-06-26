@@ -1,5 +1,6 @@
 const Brand = require("../models/brand.model");
 const Watch = require("../models/watch.model");
+const Comment = require("../models/comment.model");
 
 class WatchController {
   // Create a new watch
@@ -44,12 +45,11 @@ class WatchController {
   // Get all watches
   async getWatches(req, res) {
     try {
-      const watches = await Watch.find()
-        .populate({
-          path: "brand",
-          select: "_id brandName",
-        })
-        .populate("comments");
+      const watches = await Watch.find().populate({
+        path: "brand",
+        select: "_id brandName",
+      });
+      // .populate("comments");
       res.status(200).json(watches);
     } catch (err) {
       res
@@ -68,10 +68,19 @@ class WatchController {
           path: "brand",
           select: "_id brandName",
         })
-        .populate("comments");
+        .populate({
+          path: "comments",
+          select: "rating content",
+          populate: {
+            path: "author",
+            select: "memberName",
+          },
+        });
+
       if (!watch) {
         return res.status(404).json({ msg: "Watch not found" });
       }
+
       res.status(200).json(watch);
     } catch (err) {
       res.status(400).json({ msg: "Failed to get watch", error: err.message });
@@ -141,6 +150,55 @@ class WatchController {
       res
         .status(400)
         .json({ msg: "Failed to delete watch", error: err.message });
+    }
+  }
+  //Create comment
+  async createComment(req, res) {
+    const { rating, content } = req.body;
+    const { id } = req.params; // Id của đồng hồ
+
+    try {
+      // Tìm đồng hồ theo id
+      const watch = await Watch.findById(id).populate("comments");
+      if (!watch) {
+        return res.status(404).json({ msg: "Watch not found" });
+      }
+
+      // Lấy thông tin thành viên từ token xác thực
+      const memberId = req.member._id; // Giả sử đã có middleware auth xác thực và gán memberId vào req.member
+
+      // Kiểm tra xem thành viên đã comment trên đồng hồ này chưa
+      const existingComment = watch.comments.find(
+        (comment) => comment.author.toString() === memberId.toString()
+      );
+
+      if (existingComment) {
+        return res
+          .status(400)
+          .json({ msg: "Member has already commented on this watch" });
+      }
+
+      // Tạo mới comment
+      const newComment = new Comment({
+        rating,
+        content,
+        author: memberId,
+        watch: id, // Liên kết comment với đồng hồ
+      });
+
+      // Lưu comment vào cơ sở dữ liệu
+      await newComment.save();
+
+      // Liên kết comment với đồng hồ
+      watch.comments.push(newComment._id);
+      await watch.save();
+
+      // Trả về phản hồi thành công và thông tin comment đã tạo
+      res.status(201).json(newComment);
+    } catch (err) {
+      res
+        .status(400)
+        .json({ msg: "Failed to create comment", error: err.message });
     }
   }
 }

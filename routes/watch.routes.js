@@ -182,4 +182,53 @@ router.put("/update/:id", auth("admin"), watchController.updateWatch);
  */
 router.delete("/:id", auth("admin"), watchController.deleteWatch);
 
+/**
+ * @swagger
+ * /watches/{id}/comments:
+ *   post:
+ *     summary: Create a new comment for a watch
+ *     tags: [Watches]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The watch id
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - rating
+ *               - content
+ *             properties:
+ *               rating:
+ *                 type: number
+ *                 description: The rating for the watch (1-3)
+ *               content:
+ *                 type: string
+ *                 description: The content of the comment
+ *     responses:
+ *       201:
+ *         description: The comment was successfully created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Comment'
+ *       400:
+ *         description: Bad request, invalid input
+ *       401:
+ *         description: Unauthorized, missing or invalid token
+ *       404:
+ *         description: Watch not found
+ *       500:
+ *         description: Internal server error
+ */
+router.post("/:id/comments", auth("user"), watchController.createComment);
+
 module.exports = router;
