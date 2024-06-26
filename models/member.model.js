@@ -7,6 +7,7 @@ const memberSchema = new Schema(
     memberName: {
       type: String,
       required: true,
+      unique: true, // Đảm bảo memberName là duy nhất
     },
     password: {
       type: String,

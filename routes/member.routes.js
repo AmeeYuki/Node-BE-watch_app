@@ -71,7 +71,7 @@ const auth = require("../middleware/authMiddleware");
  *               items:
  *                 $ref: '#/components/schemas/Member'
  */
-router.get("/", auth, memberController.getMembers);
+router.get("/", auth("admin"), memberController.getMembers);
 
 /**
  * @swagger
@@ -138,111 +138,83 @@ router.post("/register", memberController.register);
  */
 router.post("/login", memberController.login);
 
-// /**
-//  * @swagger
-//  * /members/add:
-//  *   post:
-//  *     summary: Create a new member
-//  *     tags: [Members]
-//  *     requestBody:
-//  *       required: true
-//  *       content:
-//  *         application/json:
-//  *           schema:
-//  *             $ref: '#/components/schemas/Member'
-//  *     responses:
-//  *       200:
-//  *         description: The member was successfully created
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               $ref: '#/components/schemas/Member'
-//  *       400:
-//  *         description: Some error happened
-//  */
-// router.post("/add", memberController.addMember);
+/**
+ * @swagger
+ * /members/update-password:
+ *   put:
+ *     summary: Update member's password
+ *     tags: [Members]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - memberId
+ *               - currentPassword
+ *               - newPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 description: The member's current password
+ *               newPassword:
+ *                 type: string
+ *                 description: The member's new password
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *       400:
+ *         description: Some error happened
+ */
+router.put("/update-password", auth(), memberController.updatePassword);
 
-// /**
-//  * @swagger
-//  * /members/{id}:
-//  *   get:
-//  *     summary: Get the member by ID
-//  *     tags: [Members]
-//  *     parameters:
-//  *       - in: path
-//  *         name: id
-//  *         schema:
-//  *           type: string
-//  *         required: true
-//  *         description: The member id
-//  *     responses:
-//  *       200:
-//  *         description: The member description by ID
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               $ref: '#/components/schemas/Member'
-//  *       400:
-//  *         description: Some error happened
-//  *       404:
-//  *         description: The member was not found
-//  */
-// router.get("/:id", memberController.getMemberById);
-
-// /**
-//  * @swagger
-//  * /members/update/{id}:
-//  *   put:
-//  *     summary: Update the member by ID
-//  *     tags: [Members]
-//  *     parameters:
-//  *       - in: path
-//  *         name: id
-//  *         schema:
-//  *           type: string
-//  *         required: true
-//  *         description: The member id
-//  *     requestBody:
-//  *       required: true
-//  *       content:
-//  *         application/json:
-//  *           schema:
-//  *             $ref: '#/components/schemas/Member'
-//  *     responses:
-//  *       200:
-//  *         description: The member was updated
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               $ref: '#/components/schemas/Member'
-//  *       400:
-//  *         description: Some error happened
-//  *       404:
-//  *         description: The member was not found
-//  */
-// router.put("/update/:id", memberController.updateMember);
-
-// /**
-//  * @swagger
-//  * /members/{id}:
-//  *   delete:
-//  *     summary: Remove the member by ID
-//  *     tags: [Members]
-//  *     parameters:
-//  *       - in: path
-//  *         name: id
-//  *         schema:
-//  *           type: string
-//  *         required: true
-//  *         description: The member id
-//  *     responses:
-//  *       200:
-//  *         description: The member was deleted
-//  *       400:
-//  *         description: Some error happened
-//  *       404:
-//  *         description: The member was not found
-//  */
-// router.delete("/:id", memberController.deleteMember);
+/**
+ * @swagger
+ * /members/update-info:
+ *   put:
+ *     summary: Update member's information
+ *     tags: [Members]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - memberName
+ *               - name
+ *               - yob
+ *             properties:
+ *               memberName:
+ *                 type: string
+ *                 description: The member's username
+ *               name:
+ *                 type: string
+ *                 description: The member's full name
+ *               yob:
+ *                 type: number
+ *                 description: The member's year of birth
+ *     responses:
+ *       200:
+ *         description: Member information updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Success message
+ *                 member:
+ *                   $ref: '#/components/schemas/Member'
+ *       400:
+ *         description: Some error happened
+ */
+router.put("/update-info", auth(), memberController.updateInfo);
 
 module.exports = router;

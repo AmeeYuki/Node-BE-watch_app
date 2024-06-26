@@ -1,109 +1,3 @@
-// const Member = require("../models/member.model");
-// const bcrypt = require("bcryptjs");
-// const jwt = require("jsonwebtoken");
-
-// class memberController {
-//   // Get all members
-//   getMembers(req, res) {
-//     Member.find()
-//       .then((members) => res.json(members))
-//       .catch((err) => res.status(400).json("Error: " + err));
-//   }
-
-//   // Register a new member
-//   async register(req, res) {
-//     const { memberName, password, name, yob, isAdmin } = req.body;
-//     try {
-//       const existingMember = await Member.findOne({ memberName });
-//       if (existingMember) {
-//         return res.status(400).json("Member already exists");
-//       }
-//       const newMember = new Member({
-//         memberName,
-//         password,
-//         name,
-//         yob,
-//         isAdmin,
-//       });
-//       await newMember.save();
-//       res.json("Member registered!");
-//     } catch (err) {
-//       res.status(400).json("Error: " + err);
-//     }
-//   }
-
-//   // Login member
-//   async login(req, res) {
-//     const { memberName, password } = req.body;
-//     try {
-//       const member = await Member.findOne({ memberName });
-//       if (!member) {
-//         return res.status(400).json("Invalid credentials");
-//       }
-//       const isMatch = await bcrypt.compare(password, member.password);
-//       if (!isMatch) {
-//         return res.status(400).json("Invalid credentials");
-//       }
-//       const payload = {
-//         id: member._id,
-//         memberName: member.memberName,
-//         isAdmin: member.isAdmin,
-//       };
-//       const token = jwt.sign(payload, process.env.JWT_SECRET, {
-//         expiresIn: "1h",
-//       });
-//       res.json({ token });
-//     } catch (err) {
-//       res.status(400).json("Error: " + err);
-//     }
-//   }
-
-//   // // Add new member
-//   // addMember(req, res) {
-//   //   const { memberName, password, name, yob, isAdmin } = req.body;
-//   //   const newMember = new Member({ memberName, password, name, yob, isAdmin });
-
-//   //   newMember
-//   //     .save()
-//   //     .then(() => res.json("Member added!"))
-//   //     .catch((err) => res.status(400).json("Error: " + err));
-//   // }
-
-//   // Get member by ID
-//   // getMemberById(req, res) {
-//   //   Member.findById(req.params.id)
-//   //     .then((member) => res.json(member))
-//   //     .catch((err) => res.status(400).json("Error: " + err));
-//   // }
-
-//   // Update member by ID
-//   // updateMember(req, res) {
-//   //   Member.findById(req.params.id)
-//   //     .then((member) => {
-//   //       member.memberName = req.body.memberName;
-//   //       member.password = req.body.password;
-//   //       member.name = req.body.name;
-//   //       member.yob = req.body.yob;
-//   //       member.isAdmin = req.body.isAdmin;
-
-//   //       member
-//   //         .save()
-//   //         .then(() => res.json("Member updated!"))
-//   //         .catch((err) => res.status(400).json("Error: " + err));
-//   //     })
-//   //     .catch((err) => res.status(400).json("Error: " + err));
-//   // }
-
-//   // Delete member by ID
-//   // deleteMember(req, res) {
-//   //   Member.findByIdAndDelete(req.params.id)
-//   //     .then(() => res.json("Member deleted."))
-//   //     .catch((err) => res.status(400).json("Error: " + err));
-//   // }
-// }
-
-// module.exports = new memberController();
-
 const Member = require("../models/member.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -111,11 +5,29 @@ const jwt = require("jsonwebtoken");
 class MemberController {
   // Register a new member
   async register(req, res) {
-    const { memberName, password, name, yob, isAdmin } = req.body;
+    const { memberName, password, name, yob } = req.body;
+
+    if (!memberName || !password || !name || !yob) {
+      return res.status(400).json("All fields are required");
+    }
+
+    // Kiểm tra memberName và password không chứa khoảng trắng
+    const whitespaceRegex = /\s/;
+    if (whitespaceRegex.test(memberName)) {
+      return res.status(400).json("memberName should not contain spaces");
+    }
+    if (whitespaceRegex.test(password)) {
+      return res.status(400).json("Password should not contain spaces");
+    }
+    // Kiểm tra name không chỉ chứa duy nhất khoảng trắng
+    if (/^\s+$/.test(name)) {
+      return res.status(400).json("Name should not be only whitespace");
+    }
+
     try {
       const existingMember = await Member.findOne({ memberName });
       if (existingMember) {
-        return res.status(400).json("Member already exists");
+        return res.status(400).json("Member name already exists");
       }
       const newMember = new Member({
         memberName,
@@ -125,12 +37,18 @@ class MemberController {
         isAdmin: false,
       });
       await newMember.save();
-      res.json("Member registered!");
+      const memberToSend = {
+        _id: newMember._id,
+        memberName: newMember.memberName,
+        name: newMember.name,
+        yob: newMember.yob,
+        isAdmin: newMember.isAdmin,
+      };
+      res.json({ message: "Member registered!", member: memberToSend });
     } catch (err) {
       res.status(400).json("Error: " + err);
     }
   }
-
   // Login member
   async login(req, res) {
     const { memberName, password } = req.body;
@@ -149,14 +67,21 @@ class MemberController {
         isAdmin: member.isAdmin,
       };
       const token = jwt.sign(payload, process.env.JWT_SECRET, {
-        expiresIn: "1h",
+        expiresIn: "2h",
       });
-      res.json({ token });
+      const memberToSend = {
+        _id: member._id,
+        memberName: member.memberName,
+        name: member.name,
+        yob: member.yob,
+        isAdmin: member.isAdmin,
+        token,
+      };
+      res.json(memberToSend);
     } catch (err) {
       res.status(400).json("Error: " + err);
     }
   }
-
   // Get all members (for admin)
   async getMembers(req, res) {
     try {
@@ -164,6 +89,106 @@ class MemberController {
       res.json(members);
     } catch (err) {
       res.status(400).json("Error: " + err);
+    }
+  }
+  //Update Password
+  async updatePassword(req, res) {
+    const { currentPassword, newPassword } = req.body;
+    const memberId = req.member._id; // Lấy memberId từ token đã xác thực
+
+    // Kiểm tra memberName và password không chứa khoảng trắng
+    const whitespaceRegex = /\s/;
+
+    if (whitespaceRegex.test(newPassword)) {
+      return res
+        .status(400)
+        .json({ msg: "Password should not contain spaces" });
+    }
+    try {
+      // Tìm thành viên theo memberId
+      const member = await Member.findById(memberId);
+      if (!member) {
+        return res.status(404).json({ msg: "Member not found" });
+      }
+
+      const isMatch = await bcrypt.compare(currentPassword, member.password);
+      if (!isMatch) {
+        return res.status(400).json({ msg: "Incorrect current password" });
+      }
+
+      if (currentPassword === newPassword) {
+        return res
+          .status(400)
+          .json({ msg: "New Password is the same current password" });
+      }
+
+      // Cập nhật mật khẩu mới cho thành viên
+      member.password = newPassword;
+      await member.save();
+
+      res.json({ msg: "Password updated successfully" });
+    } catch (err) {
+      res.status(400).json("Error: " + err);
+    }
+  }
+  // Update Infomation
+  async updateInfo(req, res) {
+    const { memberName, name, yob } = req.body;
+    const memberId = req.member._id; // Lấy memberId từ token đã xác thực
+
+    console.log(req.body);
+    if (!memberName || !name || !yob) {
+      return res.status(400).json({ msg: "All fields are required" });
+    }
+
+    // Kiểm tra memberName và name không chứa khoảng trắng
+    const whitespaceRegex = /\s/;
+    if (whitespaceRegex.test(memberName)) {
+      return res
+        .status(400)
+        .json({ msg: "Member name should not contain spaces" });
+    }
+
+    if (/^\s+$/.test(name)) {
+      return res.status(400).json({ msg: "Name should not contain spaces" });
+    }
+
+    try {
+      // Tìm thành viên theo memberId
+      const member = await Member.findById(memberId);
+      if (!member) {
+        return res.status(404).json({ msg: "Member not found" });
+      }
+
+      // Kiểm tra nếu memberName mới đã tồn tại và khác với memberName hiện tại
+      if (memberName !== member.memberName) {
+        const existingMember = await Member.findOne({ memberName });
+        if (existingMember) {
+          return res.status(400).json({ msg: "Member name already exists" });
+        }
+        member.memberName = memberName;
+      }
+
+      // Cập nhật thông tin mới cho thành viên
+      member.name = name;
+      member.yob = yob;
+      await member.save();
+
+      // Trả về thông tin thành viên sau khi cập nhật
+      const updatedMember = {
+        _id: member._id,
+        memberName: member.memberName,
+        name: member.name,
+        yob: member.yob,
+        isAdmin: member.isAdmin,
+      };
+
+      res.json({
+        msg: "Member info updated successfully",
+        member: updatedMember,
+      });
+    } catch (err) {
+      res.status(400).json({ msg: "Error: " + err.message });
     }
   }
 }
